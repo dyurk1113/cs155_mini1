@@ -17,24 +17,41 @@ def load_data_file(file_name):
     return trim_data
 
 
-def load_train_data():
-    all_data = load_data_file('train_2008.csv')
-    input = refactor_train_data(all_data)
-    output = all_data['target']
-    return input, output
+def load_data():
+    train_data = load_data_file('train_2008.csv')
+    train_out = train_data['target']
+    train_out = train_out.astype(np.int8, copy=False)
+    del train_data['target']
+
+    test_data_2008 = load_test_data('2008')
+    test_data_2012 = load_test_data('2012')
+    all_data = pandas.concat([train_data, test_data_2008, test_data_2012])
+    cat_data = categorize_data(all_data)
+
+    len_train, len_2008 = len(train_data), len(test_data_2008)
+    train_cat = cat_data.iloc[:len_train]
+    for col in train_cat:
+        if (train_cat[col] == 0).all():
+            del cat_data[col]
+
+    cat_data = cat_data.values.astype(np.int8, copy=False)
+    train_in = cat_data[:len_train]
+    test_in_2008 = cat_data[len_train:len_train+len_2008]
+    test_in_2012 = cat_data[len_train+len_2008:]
+    return train_in, train_out, test_in_2008, test_in_2012
 
 
 def load_test_data(year):
-    all_data = load_data_file('test_%s.csv' % year)
-    input = refactor_train_data(all_data)
-    return input
+    return load_data_file('test_%s.csv' % year)
+    # all_data = load_data_file('test_%s.csv' % year)
+    # input = categorize_data(all_data).values
+    # input = input.astype(np.int8, copy=False)
+    # return input
 
 
-def refactor_train_data(train_data):
-    train_data = load_train_data()
-    print('Loaded Data')
-    for col in train_data:
-        train_data[col][train_data[col] < 0] = -1
-    del train_data['target']
-    print(np.shape(train_data))
-    return pandas.get_dummies(train_data, columns=train_data.columns)
+def categorize_data(data):
+    for col in data:
+        data[col][data[col] < 0] = -1
+    return pandas.get_dummies(data, columns=data.columns)
+
+# load_data()
