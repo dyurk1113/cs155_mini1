@@ -17,6 +17,7 @@ from load_input import load_raw_data, process_inputs
 #10x NN, 0.8 Rate, -1-sig dropout, 2x extra layer: 78.97, 77.97
 #10x NN, 0.8 Rate, -1-sig dropout, 2x extra layer, 0.2 dropout: 78.59, 77.84
 #10x NN, 0.8 Rate, -1-sig dropout, extra layer, extra little layer:78.78, 78.00
+#10x NN, 0.8 Rate, -1-sig dropout, extra layer, weighting: 78.91, 78.03
 
 t = time.time()
 train_data, train_out, test_data_2008, test_data_2012 = load_raw_data()
@@ -25,13 +26,17 @@ num_reps, drop_rate, min_drop_thresh = 1, 0.0, 0.002
 t = time.time()
 train_in, test_in_2008, test_in_2012, drop_cols = process_inputs(train_data, test_data_2008, test_data_2012, drop_rate, min_drop_thresh)
 print('Data Proc Time:', time.time() - t)
+
+# mean_voter = np.mean(train_in, axis=0)
+# vote_rate = 1.0 * np.count_nonzero(train_out) / train_out.shape[0]
+# weights = train_out * (1 - vote_rate) + (1 - train_out) * vote_rate
 # print('Loaded Data')
 
 
 #No -1 Drop: 1192 cols, Train: 0.799919, Val: 0.778164
 #Do -1 Drop: 1140 cols, Train: 0.803611, Val: 0.780484
 
-num_nn, in_frac = 10, 0.8
+num_nn, in_frac = 3, 0.8
 num_cols = train_in.shape[1]
 sel_cols = int(in_frac * num_cols)
 
@@ -56,6 +61,7 @@ for t_inds, v_inds in skf.split(train_in, train_out):
         model.compile(optimizer='adam',
                       loss='binary_crossentropy',
                       metrics=['accuracy'])
+
 
         fit = model.fit(train, t_out, batch_size=128, epochs=1, verbose=0)
         train_pred = model.predict(train)

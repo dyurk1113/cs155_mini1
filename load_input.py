@@ -23,7 +23,9 @@ def get_col_ignore():
 def load_data_file(file_name):
     data_file = os.path.join(os.getcwd(), data_folder, file_name)
     all_data = pandas.read_csv(data_file)
+    # print(len(all_data.columns))
     all_data.drop(get_col_ignore(), axis=1, inplace=True)
+    # print(len(all_data.columns))
     return all_data
 
 
@@ -49,6 +51,7 @@ def process_inputs(train_data, test_data_2008, test_data_2012, col_drop_rate = 0
         all_data.drop(col_names, axis=1)
     t = time.time()
     cat_data = categorize_data(all_data)
+    print(len(cat_data.columns))
     # print('Cat Time:', time.time()-t)
 
     t = time.time()
@@ -62,6 +65,7 @@ def process_inputs(train_data, test_data_2008, test_data_2012, col_drop_rate = 0
             drop_cols.append(col)
             # del cat_data[col]
     cat_data.drop([cat_data.columns[c] for c in drop_cols], axis=1, inplace=True)
+    print(len(cat_data.columns))
     # print('Thresh Drop Time:', time.time() - t)
 
     cat_data = cat_data.values.astype(np.int8)
@@ -89,4 +93,5 @@ def categorize_data(data):
     # print('Drop Time:', time.time() - t)
     return cat_data
 
-# load_data()
+train_data, train_out, test_data_2008, test_data_2012 = load_raw_data()
+process_inputs(train_data, test_data_2008, test_data_2012, 0, 0.002)
